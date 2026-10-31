@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: trackhive-api
+    runtime: node
+    plan: free
+    buildCommand: "npm install && npx prisma generate"
+    startCommand: "npm start"
+    envVars:
+      - key: NODE_ENV
+        value: "production"
+      - key: PORT
+        value: "5000"
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+
+  - type: web
+    name: trackhive-frontend
+    runtime: static
+    buildCommand: "cd apps/frontend && npm install && npm run build"
+    staticPublishPath: ./apps/frontend/dist
+    envVars:
+      - key: VITE_NODE_URL
+        value: "https://trackhive-api.onrender.com"
+      - key: VITE_API_URL
+        value: "https://trackhive-api.onrender.com"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
