@@ -175,14 +175,22 @@ const TrackHiveApp = () => {
         setIsVerifying(false);
         return;
       }
+      // Token exists — treat as authenticated immediately (optimistic auth).
+      // Our token format is `token-<userId>` (not JWT), so we don't need to decode.
+      // We still fire a background profile check, but we NEVER log the user out
+      // on a transient network failure — only on explicit 401.
+      setIsAuthenticated(true);
+      setIsVerifying(false);
       try {
         await getProfile();
-        setIsAuthenticated(true);
       } catch (err) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-      } finally {
-        setIsVerifying(false);
+        // Only hard-logout on 401 Unauthorized. Network errors (503, timeout, etc.)
+        // should not log the user out on the live Render deployment.
+        if (err?.response?.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          setIsAuthenticated(false);
+        }
       }
     };
     verifySession();
