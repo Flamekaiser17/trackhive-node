@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import apiRouter from './routes/index.js';
 import { authController } from './controllers/authController.js';
+import errorHandler from './middlewares/error.middleware.js';
 import prisma from './config/prisma.js';
 import redis from './config/redis.js';
 
@@ -89,5 +90,8 @@ app.get('/', (req, res) => {
 
 // Mount modular API routes
 app.use('/api', apiRouter);
+
+// Global Error Handler Middleware (MUST be mounted after all routes)
+app.use(errorHandler);
 
 export default app;

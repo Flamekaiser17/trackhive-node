@@ -32,6 +32,10 @@ export function setSocketIO(ioInstance) {
   _io = ioInstance;
 }
 
+export function getSocketIO() {
+  return _io;
+}
+
 /**
  * Automatically find and assign the nearest available agent to an order.
  * Implements distributed lock + ACID transaction to prevent double assignment.
