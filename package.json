@@ -1,31 +1,20 @@
 {
   "name": "trackhive2",
   "version": "1.0.0",
-  "description": "TrackHive - Real-time Fleet & Delivery Orchestration Engine",
-  "type": "module",
-  "main": "src/server.js",
+  "description": "TrackHive - Real-time Fleet & Delivery Orchestration Engine Monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend"
+  ],
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "simulate": "node scripts/simulateTelemetry.js",
-    "test:load": "node tests/load/load-test.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:pull": "prisma db pull",
-    "prisma:studio": "prisma studio"
-  },
-  "dependencies": {
-    "@prisma/client": "^5.14.0",
-    "bullmq": "^5.7.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "ioredis": "^5.4.1",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.8.4"
-  },
-  "devDependencies": {
-    "autocannon": "^8.0.0",
-    "prisma": "^5.14.0"
+    "start": "npm start --prefix apps/backend",
+    "dev": "npm run dev --prefix apps/backend",
+    "dev:backend": "npm run dev --prefix apps/backend",
+    "dev:frontend": "npm run dev --prefix apps/frontend",
+    "build:frontend": "npm run build --prefix apps/frontend",
+    "test:load": "npm run test:load --prefix apps/backend",
+    "prisma:generate": "npm run prisma:generate --prefix apps/backend",
+    "prisma:push": "npm run prisma:push --prefix apps/backend"
   }
 }

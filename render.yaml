@@ -3,6 +3,7 @@ services:
     name: trackhive-api
     runtime: node
     plan: free
+    rootDir: apps/backend
     buildCommand: "npm install && npx prisma generate"
     startCommand: "npm start"
     envVars:
@@ -20,8 +21,9 @@ services:
   - type: web
     name: trackhive-frontend
     runtime: static
-    buildCommand: "cd apps/frontend && npm install && npm run build"
-    staticPublishPath: ./apps/frontend/dist
+    rootDir: apps/frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_NODE_URL
         value: "https://trackhive-api.onrender.com"
@@ -31,4 +33,3 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-
