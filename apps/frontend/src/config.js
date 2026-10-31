@@ -11,5 +11,5 @@ export const MAP_SETTINGS = {
   defaultZoom: 13,
   minZoom: 10,
   maxZoom: 18,
-  tileLayer: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  tileLayer: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 };

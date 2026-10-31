@@ -69,6 +69,24 @@ app.get('/api/health/', fastHealthHandler);
 app.post('/demo', authController.demo);
 app.post('/demo/', authController.demo);
 
+// Root Welcome & Discovery route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'TrackHive Real-Time Telemetry Engine',
+    version: '2.0.0',
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      orders: '/api/orders',
+      agents: '/api/agents',
+      anomalies: '/api/anomalies',
+      simulate: '/api/simulate'
+    }
+  });
+});
+
 // Mount modular API routes
 app.use('/api', apiRouter);
 
