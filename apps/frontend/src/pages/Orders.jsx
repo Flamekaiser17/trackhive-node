@@ -168,9 +168,10 @@ const Orders = () => {
     setLoading(true);
     try {
       const data = await getOrders();
-      setOrders(Array.isArray(data) ? data : (data?.results || []));
+      const list = Array.isArray(data) ? data : (data?.orders || data?.results || []);
+      setOrders(list);
     } catch (err) {
-      console.error('Fetch errors fail:', err);
+      console.error('Fetch orders failed:', err);
     } finally {
       setLoading(false);
     }
@@ -220,10 +221,13 @@ const Orders = () => {
 
   /* ── Counts for Stat Pills ─────────────────────────── */
   const counts = useMemo(() => ({
-    created: orders.filter(o => o.status === 'created').length,
-    assigned: orders.filter(o => o.status === 'assigned').length,
-    in_transit: orders.filter(o => o.status === 'in_transit' || o.status === 'in_progress').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
+    created: orders.filter(o => (o.status || '').toLowerCase() === 'created').length,
+    assigned: orders.filter(o => (o.status || '').toLowerCase() === 'assigned').length,
+    in_transit: orders.filter(o => {
+      const s = (o.status || '').toLowerCase();
+      return s === 'in_transit' || s === 'in_progress';
+    }).length,
+    delivered: orders.filter(o => (o.status || '').toLowerCase() === 'delivered').length,
   }), [orders]);
 
   const hasFilters = search || statusFilter !== 'all' || dateRange !== 'all';

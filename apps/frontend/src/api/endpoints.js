@@ -50,7 +50,22 @@ export const resetAgentFatigue = async (id) => {
 export const getOrders = async () => {
   const response = await client.get('/api/orders/');
   const data = response.data;
-  return Array.isArray(data) ? data : (data?.results || []);
+  const rawOrders = Array.isArray(data) ? data : (data?.orders || data?.results || []);
+
+  return rawOrders.map(o => ({
+    ...o,
+    id: o.id,
+    status: (o.status || 'CREATED').toLowerCase(),
+    lat: o.pickupLat || o.pickup_lat || o.lat,
+    lng: o.pickupLng || o.pickup_lng || o.lng,
+    pickup_lat: o.pickupLat || o.pickup_lat,
+    pickup_lng: o.pickupLng || o.pickup_lng,
+    drop_lat: o.dropLat || o.drop_lat,
+    drop_lng: o.dropLng || o.drop_lng,
+    created_at: o.createdAt || o.created_at,
+    agent_name: o.agent?.user?.email?.split('@')[0] || (o.agentId ? `Agent_${String(o.agentId).slice(0, 6)}` : 'Unassigned'),
+    customer: o.customer || `Client_${String(o.id).slice(-4)}`,
+  }));
 };
 
 export const getOrderDetail = async (id) => {

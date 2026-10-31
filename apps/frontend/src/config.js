@@ -1,10 +1,10 @@
 // TrackHive Global Frontend Configuration
 
 export const CITY_CENTER = {
-  lat: 12.9716,
-  lng: 77.5946,
-  name: 'Bengaluru',
-  district: 'Bengaluru-Main-01'
+  lat: 28.6315,
+  lng: 77.2167,
+  name: 'Delhi NCR',
+  district: 'Delhi-Central-01'
 };
 
 export const MAP_SETTINGS = {

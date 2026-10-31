@@ -16,9 +16,9 @@ router.post(['/start', '/start/'], async (req, res) => {
       simulationInterval = null;
     }
 
-    // Coordinates around Central Bengaluru / Connaught Place
-    const baseLat = 12.9716;
-    const baseLng = 77.5946;
+    // Coordinates around Central Delhi / Connaught Place
+    const baseLat = 28.6315;
+    const baseLng = 77.2167;
 
     // Simulate agent movement telemetry
     simulationInterval = setInterval(async () => {
