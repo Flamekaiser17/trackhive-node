@@ -1,0 +1,91 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  AGENT
+}
+
+enum AgentStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum OrderStatus {
+  CREATED
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+}
+
+enum AnomalyType {
+  SPEED_ANOMALY
+  UNREACHABLE
+}
+
+model User {
+  id            String         @id @default(uuid()) @db.Uuid
+  email         String         @unique
+  password      String
+  role          Role           @default(AGENT)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  deliveryAgent DeliveryAgent?
+
+  @@index([role])
+  @@map("users")
+}
+
+model DeliveryAgent {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @unique @map("user_id") @db.Uuid
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentLat   Float?        @map("current_lat")
+  currentLng   Float?        @map("current_lng")
+  currentSpeed Float         @default(0.0) @map("current_speed")
+  status       AgentStatus   @default(OFFLINE)
+  batteryLevel Int           @default(100) @map("battery_level")
+  isSimulated  Boolean       @default(false) @map("is_simulated")
+  orders       Order[]
+  anomalies    AnomalyLog[]
+
+  @@index([status])
+  @@map("delivery_agents")
+}
+
+model Order {
+  id        String         @id @default(uuid()) @db.Uuid
+  agentId   String?        @map("agent_id") @db.Uuid
+  agent     DeliveryAgent? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  pickupLat Float          @map("pickup_lat")
+  pickupLng Float          @map("pickup_lng")
+  dropLat   Float          @map("drop_lat")
+  dropLng   Float          @map("drop_lng")
+  status    OrderStatus    @default(CREATED)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("orders")
+}
+
+model AnomalyLog {
+  id          String        @id @default(uuid()) @db.Uuid
+  agentId     String        @map("agent_id") @db.Uuid
+  agent       DeliveryAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  anomalyType AnomalyType   @map("anomaly_type")
+  details     String?       @db.Text
+  detectedAt  DateTime      @default(now()) @map("detected_at")
+
+  @@index([agentId])
+  @@index([detectedAt(sort: Desc)])
+  @@map("anomaly_logs")
+}

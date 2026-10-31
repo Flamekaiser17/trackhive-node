@@ -7,17 +7,23 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || 'http://localhost:8000'),
-      'process.env.VITE_WS_URL': JSON.stringify(env.VITE_WS_URL || 'ws://localhost:8000'),
+      'process.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL || 'http://localhost:5000'),
+      'process.env.VITE_NODE_URL': JSON.stringify(env.VITE_NODE_URL || 'http://localhost:5000'),
+      'process.env.VITE_WS_URL': JSON.stringify(env.VITE_WS_URL || 'ws://localhost:5000'),
     },
     server: {
+      port: 5173,
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: 'http://localhost:5000',
           changeOrigin: true,
         },
-        '/ws': {
-          target: 'ws://localhost:8000',
+        '/demo': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+        },
+        '/socket.io': {
+          target: 'http://localhost:5000',
           ws: true,
         }
       }

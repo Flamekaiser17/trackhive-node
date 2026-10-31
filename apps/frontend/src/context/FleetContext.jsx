@@ -10,9 +10,8 @@ export const FleetProvider = ({ children }) => {
   const [anomalies, setAnomalies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // wsReady: true once WS connects OR after a max 6s fallback
-  // This gates the UI splash screen in App.jsx
-  const [wsReady, setWsReady] = useState(false);
+  // wsReady: true by default so UI loads instantly with Node.js engine
+  const [wsReady, setWsReady] = useState(true);
   const wsReadyTimerRef = useRef(null);
   
   // Simulation State Persistence

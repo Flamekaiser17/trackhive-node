@@ -1,0 +1,31 @@
+{
+  "name": "trackhive2",
+  "version": "1.0.0",
+  "description": "TrackHive - Real-time Fleet & Delivery Orchestration Engine",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "simulate": "node scripts/simulateTelemetry.js",
+    "test:load": "node tests/load/load-test.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:pull": "prisma db pull",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "bullmq": "^5.7.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0",
+    "prisma": "^5.14.0"
+  }
+}

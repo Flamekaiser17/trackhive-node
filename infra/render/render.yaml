@@ -1,112 +1,31 @@
 services:
   - type: web
-    name: trackhive-web
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    name: trackhive-api
+    runtime: node
     plan: free
-    healthCheckPath: /
-    dockerCommand: "/app/start.sh"
+    buildCommand: "npm install && npx prisma generate"
+    startCommand: "npm start"
     envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
-      - key: DJANGO_SETTINGS_MODULE
-        value: "config.settings"
+      - key: NODE_ENV
+        value: "production"
+      - key: PORT
+        value: "5000"
       - key: DATABASE_URL
-        fromDatabase:
-          name: trackhive-db
-          property: connectionString
+        sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: REDIS_URL
-        fromService:
-          name: trackhive-redis
-          type: keyvalue
-          property: connectionString
-      - key: ALLOWED_HOSTS
-        value: ".onrender.com"
-      - key: CORS_ALLOWED_ORIGINS
-        value: "https://trackhive-frontend.onrender.com"
-      - key: DB_SSL_REQUIRE
-        value: "True"
-
-  - type: web
-    name: trackhive-celery
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: free
-    healthCheckPath: /
-    dockerCommand: "/app/start_celery.sh"
-    envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
-      - key: DJANGO_SETTINGS_MODULE
-        value: "config.settings"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: trackhive-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: trackhive-redis
-          type: keyvalue
-          property: connectionString
-      - key: DB_SSL_REQUIRE
-        value: "True"
-
-  - type: web
-    name: trackhive-beat
-    runtime: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: free
-    healthCheckPath: /
-    dockerCommand: "/app/start_beat.sh"
-    envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEBUG
-        value: "False"
-      - key: DJANGO_SETTINGS_MODULE
-        value: "config.settings"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: trackhive-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: trackhive-redis
-          type: keyvalue
-          property: connectionString
-      - key: DB_SSL_REQUIRE
-        value: "True"
+        sync: false
 
   - type: web
     name: trackhive-frontend
     runtime: static
-    buildCommand: "cd frontend && npm install && npm run build"
-    staticPublishPath: ./backend/staticfiles/dist
+    buildCommand: "cd apps/frontend && npm install && npm run build"
+    staticPublishPath: ./apps/frontend/dist
     envVars:
-      - key: VITE_API_URL
-        value: "https://trackhive-web.onrender.com"
-      - key: VITE_WS_URL
-        value: "wss://trackhive-web.onrender.com"
+      - key: VITE_NODE_URL
+        value: "https://trackhive-api.onrender.com"
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-
-  - type: keyvalue
-    name: trackhive-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
-
-databases:
-  - name: trackhive-db
-    databaseName: trackhive
-    user: trackhive_user
-    plan: free

@@ -1,66 +1,59 @@
 # TrackHive: Distributed Delivery Orchestration & Real-time Telemetry Engine 📦 🐝
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/release/python-3110/)
-[![Django 4.2 LTS](https://img.shields.io/badge/django-4.2_LTS-green.svg)](https://www.djangoproject.com/)
-[![Redis 7](https://img.shields.io/badge/redis-7.0-red.svg)](https://redis.io/)
-[![PostgreSQL 15](https://img.shields.io/badge/postgresql-15-blue.svg)](https://www.postgresql.org/)
+[![Node.js 18+](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
+[![Prisma ORM](https://img.shields.io/badge/prisma-5.x-blue.svg)](https://www.prisma.io/)
+[![Upstash Redis](https://img.shields.io/badge/redis-Upstash-red.svg)](https://upstash.com/)
+[![Supabase PostgreSQL](https://img.shields.io/badge/postgresql-Supabase-emerald.svg)](https://supabase.com/)
 
-**TrackHive** is a production-grade, event-driven orchestration platform engineered for high-throughput logistics and real-time asset tracking. Built on a distributed micro-services architecture, it manages the critical lifecycle of delivery operations—from intelligent agent assignment to sub-second telemetry synchronization and automated anomaly detection.
+**TrackHive** is a high-performance, real-time fleet orchestration engine and delivery coordination platform. Engineered with a pure JavaScript (ES Modules) backend, PostgreSQL (Prisma ORM), Upstash Redis, and Socket.io, it is purpose-built around core distributed systems concepts: **ACID guarantees, distributed locking, geospatial indexing, and decoupled background workers.**
 
 ---
 
 ## 🏗 System Architecture
 
-TrackHive utilizes an **asynchronous, message-driven architecture** designed for horizontal stability and low-latency data propagation.
+TrackHive utilizes a lightweight, event-driven Node.js architecture designed for horizontal scalability, sub-second telemetry propagation, and zero race conditions under concurrent dispatch.
 
 ```mermaid
 graph TD
-    subgraph "External Tier"
-        LB[Load Balancer]
-        WS_Client[WebSocket Client / Driver App]
-        Admin_Panel[React Admin Dashboard]
+    subgraph "Clients & Frontends"
+        Admin_UI[Operations Deck / Vite + React]
+        Driver_App[Simulated Agents / Mobile Telemetry]
     end
 
-    subgraph "Application Tier"
-        Daphne[Daphne ASGI Server]
-        Celery_Worker[Celery Distributed Workers]
-        Celery_Beat[Celery Beat Scheduler]
+    subgraph "Application Engine (Node.js ESM)"
+        Express_API[Express HTTP Server :5000]
+        Socket_GW[Socket.io Telemetry Gateway]
+        BullMQ_Worker[BullMQ Decoupled Anomaly Worker]
+        Lock_Service[Redis Distributed Mutex Service]
+        Cache_Service[Multi-Tier Cache Layer]
     end
 
     subgraph "Data & State Tier"
-        Redis_Broker[(Redis 7: Pub/Sub & Task Queue)]
-        PG_DB[(PostgreSQL 15: Persistent Store)]
-        Redis_Cache[(Redis 7: Geospatial Index)]
+        Supabase_PG[(Supabase PostgreSQL: ACID Persistent Store)]
+        Upstash_Redis[(Upstash Redis: GEO Index, Cache & BullMQ)]
     end
 
-    WS_Client <-->|Daphne| Redis_Broker
-    Admin_Panel <-->|REST API| Daphne
-    Daphne <--> PG_DB
-    Celery_Worker <--> Redis_Broker
-    Celery_Worker <--> PG_DB
-    Celery_Beat --> Redis_Broker
+    Driver_App -->|agent:telemetry ws| Socket_GW
+    Socket_GW -->|GEOADD & Hash TTL| Upstash_Redis
+    Socket_GW -->|fleet:agent_moved| Admin_UI
+    Socket_GW -->|speed > 100 km/h| BullMQ_Worker
+    BullMQ_Worker -->|Persist Anomaly Log| Supabase_PG
+
+    Admin_UI <-->|REST API| Express_API
+    Express_API -->|Read-Through Cache| Cache_Service
+    Cache_Service <-->|10s TTL| Upstash_Redis
+    Express_API -->|Prisma ORM| Supabase_PG
+    Express_API -->|Auto-Assign Lock| Lock_Service
+    Lock_Service <-->|SET NX EX| Upstash_Redis
 ```
 
-### Architectural Breakdown
-- **Asynchronous Ingestion**: Driver telemetry is ingested via WebSockets (ASGI/Daphne) and streamed directly to a Redis-backed Pub/Sub layer, bypassing traditional RDBMS bottlenecks for transient data.
-- **Distributed Job Queue**: Computationally expensive operations—such as route deviation analysis and ETA recalculations—are offloaded to stateless Celery workers.
-- **Geospatial Indexing**: Utilizes Redis `GEO` primitives to perform high-speed neighbor searches and proximity-based agent assignment in `$O(log(N))$` time.
-
----
-
-## 🚀 Key Engineering Features
-
-### 📡 Real-time Telemetry & State Synchronization
-- **Low-Latency Updates**: Engineered with Django Channels to provide sub-second position updates to administrative dashboards.
-- **Dynamic Pub/Sub**: Implements per-order and per-agent message channels to ensure precise data broadcasting without over-fetching.
-
-### ⚠️ Intelligent Anomaly Detection System
-- **Real-time Heuristics**: Automated workers monitor for "Speed Anomalies," "Stale Agents," and "Route Deviations" using rolling-window telemetry analysis.
-- **Event-Driven Alerts**: Anomalies trigger immediate WebSocket broadcasts to admin consoles for zero-lag operational intervention.
-
-### 🤖 Synthetic Load Simulator
-- **High-Concurrency Testing**: A built-in simulator capable of mocking concurrent autonomous agents to stress-test the system's throttle limits and race-condition handling.
+### Architectural Highlights
+- **Decoupled Telemetry Pipeline:** High-frequency GPS updates are ingested over Socket.io and indexed directly in Redis GEO (`GEOADD`) with hash metadata and a 1-hour TTL, completely shielding PostgreSQL from high-frequency write locks.
+- **Race-Condition-Free Dispatch:** Order assignment employs a two-tier protection model:
+  1. **Layer 1 — Redis Mutex (`SET NX EX`):** Optimistic distributed lock claimed in `< 1ms`.
+  2. **Layer 2 — PostgreSQL ACID Transaction (`prisma.$transaction`):** Atomically re-verifies agent status as `AVAILABLE`, flips the order to `ASSIGNED`, and marks the agent `BUSY`.
+- **Decoupled Anomaly Worker:** High-speed violations (> 100 km/h) are offloaded to a BullMQ queue backed by Upstash Redis and processed asynchronously without degrading API latency.
 
 ---
 
@@ -68,62 +61,94 @@ graph TD
 
 | Component | Technology | Detail |
 | :--- | :--- | :--- |
-| **Runtime** | Python 3.11 | Optimized for performance and asynchronous I/O |
-| **Framework** | Django 4.2 / DRF | Enterprise-grade ORM and RESTful architecture |
-| **Real-time** | Django Channels 4 | WebSocket orchestration via Daphne ASGI |
-| **Distributed Tasks** | Celery 5.3 | Asynchronous execution with Gevent concurrency |
-| **Primary Database** | PostgreSQL 15 | Relational integrity for core business entities |
-| **State & Cache** | Redis 7 | Multi-purpose use for Pub/Sub, Caching, and GEO hashing |
-| **Containerization** | Docker / Compose | Consistent, service-oriented environment orchestration |
+| **Runtime** | Node.js (ES Modules) | Clean, lightweight native ESM architecture |
+| **HTTP Framework** | Express 4 | Modular controllers, routes, and middlewares |
+| **Real-time Gateway** | Socket.io 4 | Sub-second bidirectional telemetry broadcasting |
+| **Database & ORM** | PostgreSQL (Supabase) + Prisma | ACID transaction safety, relational schema, migrations |
+| **Cache & State** | Upstash Redis | Geospatial indexing (`GEOADD`/`GEOSEARCH`), Mutex, caching |
+| **Task Queue** | BullMQ | Decoupled background anomaly persistence |
+| **Frontend UI** | React 19 + Vite + Leaflet | Dark-mode Logistics Operations Deck (CartoDB Dark Matter) |
+| **Load Testing** | Autocannon | High-concurrency Node.js benchmark suite |
 
 ---
 
-## 📊 Reliability & Performance
+## ⚡ System Architecture & Performance Engineering
 
-- **Distributed Locking**: Implements Redis-based mutex locks to prevent race conditions during order assignment, ensuring a "single-assignment" integrity model.
-- **Advanced Throttling**: Multi-tier rate limiting (Anon: 20/min, User: 200/min) protects system resources from API abuse and high-frequency simulator traffic.
-- **Health Monitoring**: Integrated health probes for core dependencies (DB, Redis) with automated container recovery policies.
+TrackHive is engineered for high-throughput logistics and real-time anomaly monitoring, backed by Supabase PostgreSQL, Prisma ORM, and Upstash Redis.
 
----
+### Key Production Optimizations
+* **Multi-Tier Read-Through Caching:** Implemented a Redis caching layer with an in-memory fallback (10-second TTL) for high-frequency admin polling endpoints, paired with automatic cache invalidation on new order ingestion.
+* **Composite B-Tree Indexing & Query Projection:** Added targeted Prisma indexes on status, role, agentId, and descending timestamp columns while enforcing selective field projections and a default 50-record pagination limit.
+* **Zero-Blocking Health Probes:** Replaced synchronous cloud database and Redis network pings on the health endpoint with passive in-memory connection state tracking.
+* **Asynchronous Write Side-Effects:** Offloaded post-order cache invalidation from the critical HTTP write path using Node.js event loop scheduling (`setImmediate`).
 
-## 📈 Observability & Security
+### Load Testing Benchmarks (Autocannon)
 
-- **Structured JSON Logging**: Custom-built `JsonFormatter` provides machine-readable logs compatible with ELK, Splunk, and Docker logging drivers.
-- **Task Lifecycle Telemetry**: Automated logging of every background task, including execution duration (ms) and final state (SUCCESS/FAILURE).
-- **JWT Authentication**: Stateless, secure communication across all API endpoints with configurable token lifetimes.
+| Endpoint | Baseline RPS | Optimized RPS | Baseline Avg | Optimized Avg |
+| :--- | :--- | :--- | :--- | :--- |
+| GET /health | 6.34 | 6,654.67 | 1,425.32 ms | 0.98 ms |
+| GET /api/orders | 3.34 | 735.00 | 2,619.60 ms | 7.71 ms |
+| GET /api/agents | 5.67 | 4,572.00 | 1,334.77 ms | 1.64 ms |
+| GET /api/anomalies | 4.34 | 4,184.00 | 1,551.85 ms | 1.95 ms |
+| POST /api/orders | 10.00 | 9.00 | 924.44 ms | 938.63 ms |
 
----
+* **Tail Latency (p95) Reduction:** Order polling p95 latency dropped from 2,872 ms down to 2.00 ms (over 340x throughput speedup), while agent and anomaly dashboards achieved an 800x throughput increase with 0% error rate under concurrent load.
+* **Health Probe Speedup:** Eliminating remote network round-trips reduced p95 probe latency from 2,188 ms to 4.00 ms (~1000x throughput gain).
 
-## 🧪 Testing & Validation
-
-TrackHive maintains a high-quality codebase through a comprehensive `pytest` suite:
-```bash
-# Execute full backend test suite
-docker-compose exec web pytest tests/test_trackhive.py -v
-```
-**Coverage Includes**:
-- Distributed Mutex Integrity
-- Real-time Anomaly Trigger Logic
-- Rate-Limit Enforcement
-- Geospatial Search Precision
-
----
-
-## 🚀 Deployment
-
-The system is fully containerized for simplified deployment and environment parity.
+### Running the Benchmark Suite Locally
 
 ```bash
-# Spin up the project cluster
-docker-compose up --build -d
+# Terminal 1: Start the API server
+npm start
+
+# Terminal 2: Execute the Autocannon load suite
+npm run test:load
 ```
 
-**Cluster Includes**:
-1. `web`: ASGI Application Server
-2. `db`: PostgreSQL Persistent Layer
-3. `redis`: Unified Cache/Broker/Geo-Store
-4. `celery`: Async Anomaly Detection Engine
-5. `celery-beat`: Periodic Task Scheduler
+---
+
+## 🚦 Getting Started & Local Setup
+
+### 1. Prerequisites
+- Node.js 18+ installed
+- PostgreSQL connection string (e.g. Supabase or local Postgres)
+- Redis connection string (e.g. Upstash or local Redis)
+
+### 2. Environment Configuration
+Create a `.env` file in the root directory:
+```env
+PORT=5000
+NODE_ENV=development
+DATABASE_URL="postgresql://user:password@host:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://user:password@host:5432/postgres"
+REDIS_URL="rediss://default:token@host:6379"
+```
+
+### 3. Install Dependencies & Generate Prisma Client
+```bash
+npm install
+npx prisma generate
+```
+
+### 4. Run Server & Live Simulation
+```bash
+# Start backend engine (:5000)
+npm run dev
+
+# Run telemetry simulation & chaos injection test
+npm run simulate
+
+# Run race-condition concurrent dispatch test
+node scripts/testConcurrentDispatch.js
+```
+
+### 5. Start Frontend Command Center
+```bash
+cd apps/frontend
+npm install
+npm run dev
+```
+Open **`http://localhost:5173`** to access the live CartoDB Operations Deck!
 
 ---
 

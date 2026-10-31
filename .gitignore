@@ -1,43 +1,35 @@
-# --- Backend (Python/Django) ---
-backend/venv/
-backend/.env
-backend/*.log
-backend/celerybeat-schedule
-backend/logs/
-backend/__pycache__/
-backend/*/__pycache__/
-backend/*/*/__pycache__/
-backend/*.pyc
-backend/db.sqlite3
-backend/media/
-backend/staticfiles/
+# Node.js & Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# --- Frontend (React/Vite) ---
-frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
+# Environment Variables (Secrets)
+.env
+.env.local
+.env.*.local
 
-# --- Docker ---
-.docker/
+# Production Build Outputs
+dist/
+dist-ssr/
+build/
+out/
+*.tsbuildinfo
 
-# --- IDEs/Editors ---
+# Logs & Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS & Editor Metadata
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
-.DS_Store
 
-# --- Logs/Temp ---
-web_logs.txt
-test_double_assignment.py
-locustfile.py (Exclude if you want to keep performance tests)
-*.log
-.env
+# Testing & Coverage
+coverage/
+.nyc_output/
