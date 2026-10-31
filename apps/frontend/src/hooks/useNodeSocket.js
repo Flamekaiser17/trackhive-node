@@ -6,7 +6,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
 
-const NODE_BACKEND = import.meta.env.VITE_NODE_URL || 'http://localhost:5000';
+const isProdHost = typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+const NODE_BACKEND = import.meta.env.VITE_NODE_URL || (isProdHost ? 'https://trackhive-api.onrender.com' : 'http://localhost:5000');
 
 export function useNodeSocket() {
   const socketRef = useRef(null);

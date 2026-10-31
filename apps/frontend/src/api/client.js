@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const PROD_API_URL = 'https://trackhive-api.onrender.com';
+const isProdHost = typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || (isProdHost ? PROD_API_URL : 'http://localhost:5000'),
   headers: {
     'Content-Type': 'application/json',
   },

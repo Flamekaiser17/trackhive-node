@@ -14,10 +14,11 @@ const useWebSocket = () => {
   const socketRef = useRef(null);
 
   useEffect(() => {
+    const isProdHost = typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
     const backendUrl =
       import.meta.env.VITE_NODE_URL ||
       import.meta.env.VITE_API_URL ||
-      window.location.origin;
+      (isProdHost ? 'https://trackhive-api.onrender.com' : 'http://localhost:5000');
 
     const socket = io(backendUrl, {
       transports: ['websocket', 'polling'],
