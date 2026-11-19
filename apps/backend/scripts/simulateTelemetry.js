@@ -101,8 +101,12 @@ async function runSimulation() {
 
   console.log(`\nConnecting to TrackHive Telemetry Gateway at ${SERVER_URL}...`);
 
-  // 1. Command Center Admin Socket
-  const adminSocket = io(SERVER_URL, { reconnection: false, timeout: 5000 });
+  // 1. Command Center Admin Socket (with Admin Bearer Auth)
+  const adminSocket = io(SERVER_URL, {
+    auth: { token: 'token-admin' },
+    reconnection: false,
+    timeout: 5000,
+  });
 
   adminSocket.on('connect', () => {
     console.log('[Admin Dashboard] Connected to gateway. Joining room:admin...');

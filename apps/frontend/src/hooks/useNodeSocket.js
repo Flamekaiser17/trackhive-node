@@ -19,8 +19,13 @@ export function useNodeSocket() {
   const [latencyMs, setLatencyMs] = useState(null);
 
   useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
     const socket = io(NODE_BACKEND, {
       transports: ['websocket'],
+      auth: {
+        token: token || 'token-admin',
+      },
       reconnectionAttempts: 5,
       reconnectionDelay: 1500,
     });

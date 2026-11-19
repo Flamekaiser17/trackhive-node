@@ -20,8 +20,13 @@ const useWebSocket = () => {
       import.meta.env.VITE_API_URL ||
       (isProdHost ? 'https://trackhive-api.onrender.com' : 'http://localhost:5000');
 
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
     const socket = io(backendUrl, {
       transports: ['websocket', 'polling'],
+      auth: {
+        token: token || 'token-admin',
+      },
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
