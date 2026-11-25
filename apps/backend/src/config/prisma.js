@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = globalThis;
+const globalForPrisma = globalThis;    // global caching
 
 export const prisma =
   globalForPrisma.prisma ||

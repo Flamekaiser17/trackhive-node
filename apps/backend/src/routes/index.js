@@ -4,6 +4,7 @@ import agentRoutes from './agentRoutes.js';
 import orderRoutes from './orderRoutes.js';
 import anomalyRoutes from './anomalyRoutes.js';
 import simulateRoutes from './simulateRoutes.js';
+import healthRoutes from './healthRoutes.js';
 
 const apiRouter = Router();
 
@@ -12,5 +13,6 @@ apiRouter.use('/agents', agentRoutes);
 apiRouter.use('/orders', orderRoutes);
 apiRouter.use('/anomalies', anomalyRoutes);
 apiRouter.use('/simulate', simulateRoutes);
+apiRouter.use('/health', healthRoutes);
 
 export default apiRouter;
