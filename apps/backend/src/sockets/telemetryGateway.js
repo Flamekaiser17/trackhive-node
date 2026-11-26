@@ -1,24 +1,36 @@
 import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import geoService from '../services/geoService.js';
 import prisma from '../config/prisma.js';
 import { anomalyQueue } from '../queues/anomalyQueue.js';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'trackhive_super_secret_jwt_access_key_2026_production';
+
 /**
  * Resolves and verifies user identity & role from authorization token.
- * Supports Bearer token and 'token-<userId>' schema.
+ * Supports standard JWT tokens, Bearer token, and legacy 'token-<userId>' schema.
  * @param {string} token
  * @returns {Promise<object|null>}
  */
 async function resolveUserFromToken(token) {
   if (!token) return null;
   const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
-  const userId = cleanToken.replace(/^token-/, '').trim();
+  if (!cleanToken) return null;
 
-  if (!userId) return null;
+  let userId = null;
+
+  // 1. Try JWT verification first
+  try {
+    const decoded = jwt.verify(cleanToken, JWT_SECRET);
+    userId = decoded.id;
+  } catch (err) {
+    // 2. Fallback to legacy format
+    userId = cleanToken.replace(/^token-/, '').trim();
+  }
 
   let user = null;
   // If token carries a UUID / Prisma ID
-  if (userId.length > 10) {
+  if (userId && userId.length > 10) {
     user = await prisma.user.findUnique({
       where: { id: userId },
       include: { deliveryAgent: true },

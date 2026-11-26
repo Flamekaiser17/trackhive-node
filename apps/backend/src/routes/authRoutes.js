@@ -11,6 +11,10 @@ router.post('/register/', authController.register);
 router.post('/login', authController.login);
 router.post('/login/', authController.login);
 
+// Token Refresh
+router.post('/refresh', authController.refresh);
+router.post('/refresh/', authController.refresh);
+
 // Demo Login
 router.post('/demo', authController.demo);
 router.post('/demo/', authController.demo);
